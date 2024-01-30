@@ -1,6 +1,8 @@
 from task import *
 import pandas as pd
 import numpy as np
+
+
 mydata = pd.read_excel(io='activities.xlsx', sheet_name='Sheet1')
 
 ntask = mydata.shape[0]

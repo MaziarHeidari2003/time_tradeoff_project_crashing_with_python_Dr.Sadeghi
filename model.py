@@ -1,22 +1,40 @@
-from taskdata import *
-from pulp import *
+# Import libraries
+import pulp
 import numpy as np
 
-print('Network problem, Project time reduction')
+activities = {}
+resources = {}
 
-N = 9
+# Define decision variables
+activities = pulp.LpVariable.dicts('Activity duration', activities, lowBound=0)
+resources = pulp.LpVariable.dicts('Resource assignment', resources, lowBound=0)
 
-xindx = np.arange(1,N+1)
-a = np.arange(1,N+1)
-al = np.arange(N)
-b = np.arange(1,N+1)
-bl = np.arange(N)
+# Define objective function
+objective = pulp.LpMaximize(pulp.lpSum(activities.values()))
 
-rindx = [(a[i],b[j]) for j in bl for i in al]
+# Define constraints
+# Activity duration constraints
+for activity in activities:
+    pulp.lpSum([activities[activity]]) <= max_activity_duration
 
-model = LpVariable('Reducing time of project',LpMinimize)
+# Resource assignment constraints
+for resource in resources:
+    pulp.lpSum([resources[resource]]) <= max_resource_capacity
 
-x = LpVariable.dicts('X',xindx,0,None)
-r = LpVariable.dicts('R',xindx,0,None)
+# Total project cost constraint
+pulp.lpSum([cost * resources[resource] for resource in resources]) <= max_project_cost
 
-model = CS[0]*r[,9]
+# Create pulp problem
+prob = pulp.LpProblem('Cost-time balancing', objective)
+prob += activity_duration_constraints
+prob += resource_assignment_constraints
+prob += total_project_cost_constraint
+
+# Solve problem
+status = pulp.LpSolve(prob)
+
+# Print solution
+for activity in activities:
+    print(f'Activity {activity}: {activities[activity].value()}')
+for resource in resources:
+    print(f'Resource {resource}: {resources[resource].value()}')
