@@ -49,7 +49,7 @@ def forwardPass(mydata):
     ES = np.zeros(ntask, dtype = np.int8)
     EF = np.zeros(ntask, dtype = np.int8)
     temp = [] #hold temporary codes
-        
+    
     for i in range(ntask):
         if(mydata['PREDECESSORS'][i] == None):
             ES[i] = 0
@@ -59,11 +59,8 @@ def forwardPass(mydata):
                 errorDaysMsg()
         
         else:
-            if i == 0  :
-                continue
             for j in mydata['PREDECESSORS'][i]:
                 index = getTaskCode(mydata,j)
-                temp.append(EF[index])
                 #Check the video for the missing line here
                 
                 if(index == i):
@@ -102,8 +99,6 @@ def backwardPass(mydata):
     #create successor column:
     
     for i in range(ntask-1, -1,-1):
-        if i==0 :
-            continue
         if(mydata['PREDECESSORS'][i] != None):
             for j in mydata['PREDECESSORS'][i]:
                 index = getTaskCode(mydata,j)
@@ -116,12 +111,9 @@ def backwardPass(mydata):
 
     mydata["SUCCESSORS"] = SUCCESSORS
 
-
     #compute for  EF and LS:
 
     for i in range(ntask-1, -1, -1):
-        if i==0 :
-            continue
         if(mydata['SUCCESSORS'][i] == None):
             LF[i] = np.max(mydata['EF'])
             LS[i] = LF[i] - mydata['DAYS'][i]
@@ -160,36 +152,14 @@ def slack(mydata):
 
     #incorporate SLACK and CRITICAL to data frame
 
+    mydata['SLACK'] = SLACK
     mydata['CRITICAL'] = CRITICAL
 
 
-    #slope = np.zeros(shape = ntask, dtype = np.int8)
-    #for i in range(ntask):
-            
-            #a = mydata['DC_COST'][i]
-           # b = mydata['D_COST'][i]
-           # c = mydata['DAYS'][i]
-           # d= mydata['CRASH_DAYS'][i]
-           # slope[i] = a
-    #mydata['SLOPE'] = slope
-
-
     #re arrange columns in dataframe:
-    mydata = mydata.reindex(columns = ['DESCR', 'CODE','ES','EF','LS','LF','CRITICAL','SUCCESSORS','PREDECESSORS','DAYS','CRASH_DAYS','D_COST','DC_COST','SLOPE','duration','final_cost','start_time','finish_time'])
+    mydata = mydata.reindex(columns = ['DESCR', 'CODE','PREDECESSORS',
+                'SUCCESSORS','DAYS','ES','EF','LS','LF','SLACK','CRITICAL'])
 
-    slope = np.zeros(shape = ntask, dtype = np.int16)
-    for i in range(ntask):
-
-            a = mydata['DC_COST'][i]
-            b = mydata['D_COST'][i]
-            c = mydata['DAYS'][i]
-            d= mydata['CRASH_DAYS'][i]
-            try:
-                slope[i] = (a-b)/(c-d)
-            except:
-                slope[i]=0    
-    mydata['SLOPE'] = slope
-    
     return mydata
 
 #wrapper function:
@@ -209,8 +179,3 @@ def printTask(mydata):
     stars(90)
     print(mydata)
     stars(90)
-
-
-
-
-        
